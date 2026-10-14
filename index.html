@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>النظام الإداري لعروض الأسعار - شركة الضحى للطاقة الشمسية</title>
+    <!-- استدعاء خط Cairo العصري -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- مكتبة التقويم العصري Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+
+    <!-- ملف الـ CSS الخارجي -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-slate-50 to-indigo-50/40 min-h-screen font-sans text-slate-800 p-1.5 sm:p-4 md:p-6">
+
+    <div class="max-w-5xl mx-auto bg-white shadow-2xl rounded-2xl border border-slate-200/80 overflow-hidden print-card">
+        
+        <!-- الهيدر الإداري مع اللوجو -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white p-4 sm:p-6 md:p-8 flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white p-2 rounded-xl shadow-md w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" class="w-full h-full">
+                            <circle cx="30" cy="28" r="14" fill="#F59E0B" />
+                            <path d="M 8 38 L 52 38 L 44 52 L 16 52 Z" fill="#3B82F6" />
+                            <line x1="22" y1="38" x2="19" y2="52" stroke="#FFF" stroke-width="1.5" />
+                            <line x1="38" y1="38" x2="41" y2="52" stroke="#FFF" stroke-width="1.5" />
+                            <line x1="13" y1="45" x2="47" y2="45" stroke="#FFF" stroke-width="1" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-semibold">نظام إداري معتمد</span>
+                        <h1 class="text-base sm:text-2xl font-black tracking-wide mt-1">شركة الضحى للطاقة الشمسية</h1>
+                        <p class="text-slate-300 text-[11px] sm:text-xs mt-0.5">إدارة أسعار المحطات والمواتير والطلمبات</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صندوق العميل والتاريخ المتجاوب للهاتف -->
+            <div class="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/10 text-right shadow-inner grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="flex items-center justify-between sm:justify-start gap-2">
+                    <span class="text-xs text-slate-300 font-medium w-16">التاريخ:</span>
+                    <div class="relative flex-1 sm:flex-none">
+                        <input type="text" id="quote-date" placeholder="DD/MM/YYYY" class="w-full sm:w-32 bg-black/30 border border-white/20 rounded-lg px-2.5 py-1 text-xs text-white text-center focus:bg-black/40 focus:border-blue-400 outline-none cursor-pointer">
+                    </div>
+                </div>
+                <div class="flex items-center justify-between sm:justify-start gap-2">
+                    <span class="text-xs text-slate-300 font-medium w-16">العميل:</span>
+                    <input type="text" id="client-name" placeholder="أدخل اسم العميل..." class="flex-1 sm:w-44 bg-black/30 border border-white/20 rounded-lg px-2.5 py-1 text-xs text-white placeholder-slate-400 font-medium focus:bg-black/40 focus:border-blue-400 outline-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
+
+            <!-- لوحة تحكم الكتالوج والأقسام (تم تحسين الأزرار للموبايل لتكون واضحة وكاملة) -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 shadow-sm no-print space-y-3.5">
+                <div class="flex flex-col gap-2.5 border-b border-slate-200 pb-3">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <span>🗂️</span> لوحة تحكم الكتالوج والجداول
+                    </h3>
+                    <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                        <button onclick="addNewSectionPrompt()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm text-center">+ قسم جديد</button>
+                        <button onclick="openCatalogModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm text-center">📋 إدارة الكتالوج</button>
+                        <button onclick="exportCatalog()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm text-center">📤 تصدير</button>
+                        <label class="text-center bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm cursor-pointer">
+                            📥 استيراد
+                            <input type="file" id="import-catalog-file" accept=".json" onchange="importCatalog(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+                    <input type="text" id="new-item-name" placeholder="اسم صنف جديد..." class="sm:col-span-4 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input type="number" id="new-item-price" placeholder="السعر الثابت" class="sm:col-span-3 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input type="text" id="new-item-qty" placeholder="الكمية الافتراضية" class="sm:col-span-3 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 outline-none" value="1">
+                    <select id="new-item-category" class="sm:col-span-2 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <!-- تملأ برمجياً بالأقسام المتاحة -->
+                    </select>
+                    <button onclick="addNewItemToCatalog()" class="sm:col-span-12 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-3 rounded-lg text-xs sm:text-sm transition shadow-sm">+ حفظ في الكتالوج الثابت</button>
+                </div>
+            </div>
+
+            <!-- حاوية الأقسام والجداول الديناميكية -->
+            <div id="sections-container" class="space-y-6 sm:space-y-8"></div>
+
+            <!-- صندوق الشروط والإجمالي العام -->
+            <div id="summary-section" class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-4 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center border-b border-white/10 pb-4 gap-3">
+                    <span class="text-xs sm:text-lg font-bold text-slate-200">الإجمالي العام المطلوب للعميل:</span>
+                    <span id="grand-total" class="text-lg sm:text-3xl font-black text-emerald-400 bg-emerald-950/50 px-4 py-2 rounded-xl border border-emerald-500/30 w-full sm:w-auto text-center">0 جنية</span>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b border-white/10 pb-3">
+                    <strong class="text-slate-300 text-xs shrink-0 sm:w-36">فقط لا غير (بالعربية):</strong>
+                    <input type="text" id="grand-total-words-ar" class="bg-white/10 border border-white/20 rounded px-3 py-1.5 w-full text-emerald-300 font-bold text-xs outline-none focus:bg-white/20">
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b border-white/10 pb-3">
+                    <strong class="text-slate-300 text-xs shrink-0 sm:w-36">Amount in Words (EN):</strong>
+                    <input type="text" id="grand-total-words-en" class="bg-white/10 border border-white/20 rounded px-3 py-1.5 w-full text-emerald-300 font-bold text-xs outline-none focus:bg-white/20">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs pt-2">
+                    <div class="space-y-2.5">
+                        <div class="flex items-center gap-2">
+                            <strong class="w-20 sm:w-24 text-slate-300">مدة العرض:</strong>
+                            <input type="text" id="duration-text" class="bg-white/10 border border-white/20 rounded px-2.5 py-1.5 w-full text-white font-medium outline-none" value="اسبوع من تاريخه">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <strong class="w-20 sm:w-24 text-slate-300">دفعة مقدمة:</strong>
+                            <input type="text" id="payment-terms-text" class="bg-white/10 border border-white/20 rounded px-2.5 py-1.5 w-full text-white font-medium outline-none" value="90% تعاقد | 10% عند التوريد">
+                        </div>
+                    </div>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center gap-2">
+                            <strong class="w-20 text-slate-300">ملاحظة:</strong>
+                            <input type="text" id="notes-text" class="bg-white/10 border border-white/20 rounded px-2.5 py-1.5 w-full text-white font-medium outline-none" value="العرض غير شامل الأعمال المدنية.">
+                        </div>
+                        <div class="flex items-center justify-between sm:justify-end gap-2 pt-1">
+                            <span class="text-slate-300 font-semibold">المدير المسئول:</span>
+                            <input type="text" id="manager-name" class="bg-white/10 border border-white/20 rounded px-2.5 py-1.5 w-36 sm:w-44 text-white font-bold text-left outline-none" value="م/ وليد محمدين">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صندوق الحقوق المشفر -->
+            <div id="secure-watermark-container" class="no-print bg-slate-100 border border-dashed border-slate-300 rounded-xl p-3 text-center text-xs text-slate-500"></div>
+
+            <!-- أزرار العمليات (متجاوبة وواضحة جداً للموبايل) -->
+            <div class="flex flex-col sm:flex-row gap-2.5 justify-between items-center pt-2 no-print">
+                <div class="grid grid-cols-2 gap-2 w-full sm:w-auto">
+                    <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center justify-center gap-1.5">
+                        <span>🖨️</span> طباعة / PDF
+                    </button>
+                    <button onclick="exportInvoiceData()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center justify-center gap-1.5">
+                        <span>💾</span> حفظ الفاتورة
+                    </button>
+                </div>
+                <div class="w-full sm:w-auto">
+                    <label class="w-full text-center bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition shadow-md cursor-pointer inline-flex items-center justify-center gap-1.5">
+                        <span>📂</span> استيراد فاتورة محفوظة
+                        <input type="file" id="import-invoice-file" accept=".json" onchange="importInvoiceData(event)" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- نافذة منبثقة للكتالوج -->
+    <div id="catalog-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white p-3.5 flex justify-between items-center">
+                <h3 class="font-bold text-sm sm:text-base">📋 استعراض وتعديل الكتالوج</h3>
+                <button onclick="closeCatalogModal()" class="text-rose-400 hover:text-rose-200 font-bold text-lg px-2">✕</button>
+            </div>
+            <div class="p-3 sm:p-4 overflow-y-auto space-y-3 flex-1">
+                <p class="text-xs text-slate-500 mb-2">تعديل أسماء وأسعار الأصناف الافتراضية:</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="p-2 border">الصنف</th>
+                                <th class="p-2 border w-24 text-center">السعر</th>
+                                <th class="p-2 border w-20 text-center">الكمية</th>
+                                <th class="p-2 border w-28 text-center">القسم</th>
+                                <th class="p-2 border w-14 text-center">حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="catalog-modal-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3 border-t flex justify-end gap-2">
+                <button onclick="saveCatalogModalChanges()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition">حفظ وإغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <datalist id="items-list"></datalist>
+    <script src="script.js"></script>
+</body>
+</html>
