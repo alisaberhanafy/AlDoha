@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+body {
+    font-family: 'Cairo', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* تنسيق القوائم المنسدلة والبحث الفوري لتكون واضحة ومريحة للمس بالموبايل */
+#custom-dropdown-suggestions {
+    z-index: 99999;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    background: #ffffff;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* 📱 تحسينات خاصة بالموبايل لتفادي التصغير التلقائي (Shrunk View) */
+@media (max-width: 768px) {
+    .desktop-table-view {
+        display: none !important;
+    }
+    .mobile-card-view {
+        display: flex !important;
+        flex-direction: column;
+        gap: 12px;
+    }
+    input, select, button {
+        font-size: 14px !important; /* منع زوم الآيفون المزعج عند التركيز */
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+}
+
+/* 💻 تحسينات الكمبيوتر */
+@media (min-width: 769px) {
+    .mobile-card-view {
+        display: none !important;
+    }
+    .desktop-table-view {
+        display: block !important;
+    }
+}
+
+/* 🖨️ تنسيق الطباعة والتقاط الشاشة (Screenshot) */
+@media print {
+    body {
+        background-color: white !important;
+        padding: 0 !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .print-card {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    input, select {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+}
