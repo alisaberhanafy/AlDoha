@@ -155,32 +155,40 @@
         </div>
     </div>
 
-    <!-- نافذة منبثقة للكتالوج -->
-    <div id="catalog-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden no-print">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden border border-slate-200">
-            <div class="bg-slate-900 text-white p-3.5 flex justify-between items-center">
-                <h3 class="font-bold text-sm sm:text-base">📋 استعراض وتعديل الكتالوج</h3>
+ <!-- نافذة منبثقة للكتالوج - متجاوبة تماماً للهاتف -->
+    <div id="catalog-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white p-3.5 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm sm:text-base">📋 استعراض وتعديل الكتالوج الثابت</h3>
                 <button onclick="closeCatalogModal()" class="text-rose-400 hover:text-rose-200 font-bold text-lg px-2">✕</button>
             </div>
-            <div class="p-3 sm:p-4 overflow-y-auto space-y-3 flex-1">
-                <p class="text-xs text-slate-500 mb-2">تعديل أسماء وأسعار الأصناف الافتراضية:</p>
-                <div class="overflow-x-auto">
+            
+            <div class="p-3 sm:p-4 overflow-y-auto space-y-3 flex-1 bg-slate-50/50">
+                <p class="text-xs text-slate-500 mb-1">يمكنك تعديل أرقام، أسماء، وأسعار الأصناف مباشرة بسهولة:</p>
+
+                <!-- عرض الجدول للكمبيوتر -->
+                <div class="hidden sm:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
                     <table class="w-full text-right border-collapse text-xs">
                         <thead>
                             <tr class="bg-slate-100 text-slate-700">
-                                <th class="p-2 border">الصنف</th>
-                                <th class="p-2 border w-24 text-center">السعر</th>
-                                <th class="p-2 border w-20 text-center">الكمية</th>
-                                <th class="p-2 border w-28 text-center">القسم</th>
-                                <th class="p-2 border w-14 text-center">حذف</th>
+                                <th class="p-2.5 border-b">الصنف</th>
+                                <th class="p-2.5 border-b w-28 text-center">السعر</th>
+                                <th class="p-2.5 border-b w-24 text-center">الكمية</th>
+                                <th class="p-2.5 border-b w-36 text-center">القسم</th>
+                                <th class="p-2.5 border-b w-16 text-center">حذف</th>
                             </tr>
                         </thead>
-                        <tbody id="catalog-modal-tbody"></tbody>
+                        <tbody id="catalog-modal-tbody-desktop"></tbody>
                     </table>
                 </div>
+
+                <!-- عرض البطاقات السلسة والمريحة للهاتف -->
+                <div class="sm:hidden space-y-3" id="catalog-modal-mobile-list"></div>
             </div>
-            <div class="bg-slate-50 p-3 border-t flex justify-end gap-2">
-                <button onclick="saveCatalogModalChanges()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition">حفظ وإغلاق</button>
+
+            <div class="bg-slate-100 p-3 border-t flex justify-between items-center gap-2 shrink-0">
+                <span class="text-[11px] text-slate-500 font-medium">احفظ التعديلات بعد الانتهاء</span>
+                <button onclick="saveCatalogModalChanges()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition shadow-md">حفظ وإغلاق</button>
             </div>
         </div>
     </div>
