@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+body {
+    font-family: 'Cairo', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* تنسيق نافذة التقويم للموبايل والكمبيوتر */
+.flatpickr-calendar {
+    font-family: 'Cairo', sans-serif !important;
+    border-radius: 14px !important;
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid #e2e8f0 !important;
+    overflow: hidden;
+    direction: rtl !important;
+}
+
+.flatpickr-day.selected, 
+.flatpickr-day.startRange, 
+.flatpickr-day.endRange {
+    background: #1e3a8a !important;
+    border-color: #1e3a8a !important;
+}
+
+.flatpickr-months .flatpickr-month {
+    background: #0f172a !important;
+    color: #ffffff !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: #0f172a !important;
+}
+
+.flatpickr-weekdays {
+    background: #1e293b !important;
+}
+
+span.flatpickr-weekday {
+    color: #94a3b8 !important;
+    font-weight: bold;
+}
+
+@media print {
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        background: white !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+    input, select, textarea {
+        border: none !important;
+        background: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    .print-card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+    .mobile-card-view {
+        display: none !important;
+    }
+    .desktop-table-view {
+        display: block !important;
+    }
+    .clear-input-btn {
+        display: none !important;
+    }
+    #secure-watermark-container {
+        display: none !important;
+    }
+    .section-wrapper {
+        page-break-before: always;
+        break-before: page;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    .section-wrapper:first-of-type {
+        page-break-before: auto;
+        break-before: auto;
+    }
+    #summary-section {
+        page-break-before: always;
+        break-before: page;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
