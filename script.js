@@ -297,34 +297,75 @@ function addNewItemToCatalog() {
 }
 
 function openCatalogModal() {
-    const tbody = document.getElementById('catalog-modal-tbody');
-    tbody.innerHTML = '';
+    const desktopTbody = document.getElementById('catalog-modal-tbody-desktop');
+    const mobileContainer = document.getElementById('catalog-modal-mobile-list');
+    
+    if (desktopTbody) desktopTbody.innerHTML = '';
+    if (mobileContainer) mobileContainer.innerHTML = '';
+    
     itemsDatabase.forEach((item, index) => {
         let optionsHtml = '';
         sectionsList.forEach(sec => {
-            optionsHtml += `<option value="${sec.id}" ${item.category === sec.id ? 'selected' : ''}>${sec.title.substring(0, 20)}</option>`;
+            optionsHtml += `<option value="${sec.id}" ${item.category === sec.id ? 'selected' : ''}>${sec.title.substring(0, 25)}</option>`;
         });
-        const tr = document.createElement('tr');
-        tr.className = "border-b";
-        tr.innerHTML = `
-            <td class="p-2 border"><input type="text" value="${item.name}" class="w-full bg-transparent outline-none catalog-item-name" data-index="${index}"></td>
-            <td class="p-2 border text-center"><input type="number" value="${item.defaultPrice}" class="w-full text-center bg-transparent outline-none catalog-item-price" data-index="${index}"></td>
-            <td class="p-2 border text-center"><input type="text" value="${item.defaultQty}" class="w-full text-center bg-transparent outline-none catalog-item-qty" data-index="${index}"></td>
-            <td class="p-2 border text-center"><select class="bg-transparent outline-none catalog-item-cat w-full text-[11px]" data-index="${index}">${optionsHtml}</select></td>
-            <td class="p-2 border text-center"><button onclick="deleteCatalogItem(${index})" class="text-rose-500 font-bold px-2 py-1 hover:bg-rose-50 rounded">حذف</button></td>
-        `;
-        tbody.appendChild(tr);
+
+        // 1. عرض الكمبيوتر (جدول)
+        if (desktopTbody) {
+            const tr = document.createElement('tr');
+            tr.className = "border-b hover:bg-slate-50";
+            tr.innerHTML = `
+                <td class="p-2 border-b"><input type="text" value="${item.name}" class="w-full bg-transparent outline-none catalog-item-name font-medium text-slate-800" data-index="${index}"></td>
+                <td class="p-2 border-b text-center"><input type="number" value="${item.defaultPrice}" class="w-full text-center bg-transparent outline-none catalog-item-price font-bold text-indigo-900" data-index="${index}"></td>
+                <td class="p-2 border-b text-center"><input type="text" value="${item.defaultQty}" class="w-full text-center bg-transparent outline-none catalog-item-qty" data-index="${index}"></td>
+                <td class="p-2 border-b text-center"><select class="bg-transparent outline-none catalog-item-cat w-full text-xs" data-index="${index}">${optionsHtml}</select></td>
+                <td class="p-2 border-b text-center"><button onclick="deleteCatalogItem(${index})" class="text-rose-500 font-bold px-2 py-1 hover:bg-rose-50 rounded">حذف</button></td>
+            `;
+            desktopTbody.appendChild(tr);
+        }
+
+        // 2. عرض الهاتف (بطاقات منفصلة واسعة مريحة لللمس)
+        if (mobileContainer) {
+            const card = document.createElement('div');
+            card.className = "bg-white border border-slate-200 rounded-xl p-3 space-y-2.5 shadow-sm";
+            card.innerHTML = `
+                <div class="flex justify-between items-center border-b border-slate-100 pb-1.5">
+                    <span class="text-xs font-bold text-indigo-900">الصنف #${index + 1}</span>
+                    <button onclick="deleteCatalogItem(${index})" class="text-rose-600 font-bold text-xs px-2 py-1 bg-rose-50 rounded-lg">حذف ✕</button>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-600 block mb-1">اسم الصنف:</label>
+                    <input type="text" value="${item.name}" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 catalog-item-name-m" data-index="${index}">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-600 block mb-1">السعر (جنية):</label>
+                        <input type="number" value="${item.defaultPrice}" class="w-full text-center bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-bold text-indigo-900 outline-none focus:ring-2 focus:ring-indigo-500 catalog-item-price-m" data-index="${index}">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-600 block mb-1">الكمية:</label>
+                        <input type="text" value="${item.defaultQty}" class="w-full text-center bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500 catalog-item-qty-m" data-index="${index}">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-600 block mb-1">القسم التابع له:</label>
+                    <select class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500 catalog-item-cat-m" data-index="${index}">${optionsHtml}</select>
+                </div>
+            `;
+            mobileContainer.appendChild(card);
+        }
     });
+
     document.getElementById('catalog-modal').classList.remove('hidden');
 }
 
-function closeCatalogModal() { document.getElementById('catalog-modal').classList.add('hidden'); }
-
 function saveCatalogModalChanges() {
-    const names = document.querySelectorAll('.catalog-item-name');
-    const prices = document.querySelectorAll('.catalog-item-price');
-    const qtys = document.querySelectorAll('.catalog-item-qty');
-    const cats = document.querySelectorAll('.catalog-item-cat');
+    const isMobile = window.innerWidth < 640;
+    
+    let names = document.querySelectorAll(isMobile ? '.catalog-item-name-m' : '.catalog-item-name');
+    let prices = document.querySelectorAll(isMobile ? '.catalog-item-price-m' : '.catalog-item-price');
+    let qtys = document.querySelectorAll(isMobile ? '.catalog-item-qty-m' : '.catalog-item-qty');
+    let cats = document.querySelectorAll(isMobile ? '.catalog-item-cat-m' : '.catalog-item-cat');
+
     let newDb = [];
     for (let i = 0; i < names.length; i++) {
         const name = names[i].value.trim();
@@ -337,6 +378,7 @@ function saveCatalogModalChanges() {
             });
         }
     }
+
     itemsDatabase = newDb;
     saveCatalogToLocalStorage();
     refreshDatalist();
@@ -345,7 +387,7 @@ function saveCatalogModalChanges() {
 }
 
 function deleteCatalogItem(index) {
-    if (confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
+    if (confirm('هل أنت متأكد من حذف هذا الصنف من الكتالوج؟')) {
         itemsDatabase.splice(index, 1);
         openCatalogModal();
     }
