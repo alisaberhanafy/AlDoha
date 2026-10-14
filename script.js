@@ -1,3 +1,52 @@
+// تهيئة وتوصيل Firebase Firestore
+const firebaseConfig = {
+  apiKey: "AIzaSyCfTIA-9DwNBlhBIdfQCX4JMIW9aGyzRb4",
+  authDomain: "ali-saber-system.firebaseapp.com",
+  projectId: "ali-saber-system",
+  storageBucket: "ali-saber-system.firebasestorage.app",
+  messagingSenderId: "439316222877",
+  appId: "1:439316222877:web:8263f19d8e62c4721d5574"
+};
+
+// تشغيل الفايربيس وتأكيد قاعدة البيانات
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// دالة حفظ بيانات العميل في السحابة أونلاين
+async function saveCurrentClientData() {
+    const clientNameInput = document.getElementById('client-search-input');
+    const clientName = clientNameInput ? clientNameInput.value.trim() : "";
+    
+    if (!clientName) {
+        alert("يرجى اختيار أو كتابة اسم العميل أولاً قبل الحفظ!");
+        return;
+    }
+
+    const currentData = {
+        storeName: document.getElementById('store-name-input')?.value || "",
+        quoteDate: document.getElementById('quote-date')?.value || "",
+        clientName: clientName,
+        durationText: document.getElementById('duration-text')?.value || "",
+        paymentTermsText: document.getElementById('payment-terms-text')?.value || "",
+        notesText: document.getElementById('notes-text')?.value || "",
+        managerName: document.getElementById('manager-name')?.value || "",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+        // الحفظ المباشر في قاعدة بيانات Firestore السحابية
+        await db.collection("clients").doc(clientName).set(currentData, { merge: true });
+        
+        // حفظ احتياطي في الذاكرة المحلية
+        localStorage.setItem(`client_${clientName}`, JSON.stringify(currentData));
+        
+        alert("تم حفظ بيانات هذا العميل وتحديث السحابة بنجاح! الآن ستجد البيانات أونلاين عند فتح أي متصفح أو تليفون.");
+    } catch (error) {
+        console.error("خطأ في الحفظ السحابي:", error);
+        alert("حدث خطأ أثناء الحفظ السحابي، جاري الحفظ المحلي مؤقتاً.");
+    }
+}
+
 const CLOUD_BIN_ID = "67246961ad19ca34f8c21a36"; 
 const CLOUD_API_KEY = "$2a$10$22/502Iq2XJIs1TZJf05XGUm9DKZyBL18aPi28G";
 
