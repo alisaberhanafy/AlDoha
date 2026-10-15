@@ -1,4 +1,6 @@
-// تهيئة وتوصيل Firebase Firestore السحابية بنجاح
+// ==========================================
+// 1️⃣ تهيئة وتوصيل Firebase Firestore السحابية
+// ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyCfTIA-9DwNBlhBIdfQCX4JMIW9aGyzRb4",
   authDomain: "ali-saber-system.firebaseapp.com",
@@ -19,7 +21,9 @@ try {
     console.error("Firebase Initialization Error: ", e);
 }
 
-// الكتالوج الافتراضي والأصناف
+// ==========================================
+// 2️⃣ المتغيرات العامة وقواعد البيانات المحلية
+// ==========================================
 let catalogItems = JSON.parse(localStorage.getItem('ali_catalog_items')) || [
     { name: "انفرتر طاقة شمسية 50 حصان", price: 45000, defaultQty: 1, category: "الانفرترات", parentItem: "", isAutoSub: false },
     { name: "لوح طاقة شمسية 550 واط", price: 3200, defaultQty: 10, category: "الألواح الشمسية", parentItem: "", isAutoSub: false },
@@ -28,10 +32,23 @@ let catalogItems = JSON.parse(localStorage.getItem('ali_catalog_items')) || [
 
 let catalogCategories = JSON.parse(localStorage.getItem('ali_catalog_categories')) || ["الانفرترات", "الألواح الشمسية", "الكابلات والأسلاك", "الهياكل المعدنية"];
 let clientsList = JSON.parse(localStorage.getItem('ali_clients_list')) || [{ name: "شركة الضحى للطاقة", phone: "01000000000", address: "القاهرة" }];
-let packagesList = JSON.parse(localStorage.getItem('ali_packages_list')) || [];
-let activeSections = [];
+let packagesList = JSON.parse(localStorage.getItem('ali_packages_list')) || [
+    {
+        title: "باقة كمبيوتر كامل",
+        badge: "باقة مجهزة",
+        items: [
+            { name: "شاشة كمبيوتر 24 بوصة", price: 3500, qty: 1 },
+            { name: "كيسة كمبيوتر Core i5", price: 8500, qty: 1 }
+        ]
+    }
+];
 
-// عند تحميل الصفحة
+let activeSections = [];
+let currentPackageBuilderItems = []; // قائمة مؤقتة لبناء الباقة الحالية
+
+// ==========================================
+// 3️⃣ عند تحميل الصفحة
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     initDatePicker();
     renderCategoriesOptions();
@@ -57,9 +74,13 @@ function renderCategoriesOptions() {
     catSelect.innerHTML = catalogCategories.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
+// ==========================================
+// 4️⃣ رسم وتحديث الجداول والفواتير
+// ==========================================
 function renderSections() {
     const container = document.getElementById('sections-container');
     if (!container) return;
+
     if (activeSections.length === 0) {
         container.innerHTML = `<div class="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500 text-xs">لا يوجد جداول مضافة حالياً. اختر قسماً أو باقة من الأعلى لإدراج جدول جديد بالفاتورة.</div>`;
         return;
@@ -72,6 +93,7 @@ function renderSections() {
                 <button onclick="removeSection(${secIdx})" class="text-rose-500 hover:text-rose-700 text-xs font-bold">🗑️ حذف الجدول</button>
             </div>
             
+            <!-- عرض الكمبيوتر -->
             <div class="desktop-table-view overflow-x-auto">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
@@ -97,7 +119,7 @@ function renderSections() {
                                 <td class="p-2 border border-slate-200 text-center">
                                     <input type="number" value="${it.price}" onchange="updateItemDetails(${secIdx},${itemIdx}, 'price', this.value)" class="w-full text-center bg-transparent outline-none">
                                 </td>
-                                <td class="p-2 border border-slate-200 text-center font-bold text-emerald-700">${(it.qty * it.price).toLocaleString()} جنية</td>
+                                <td class="p-2 border border-slate-200 text-center font-bold text-emerald-700">${((it.qty || 0) * (it.price || 0)).toLocaleString()} جنية</td>
                                 <td class="p-2 border border-slate-200 text-center no-print">
                                     <button onclick="removeItemFromSection(${secIdx},${itemIdx})" class="text-rose-500 font-bold">✕</button>
                                 </td>
@@ -107,6 +129,7 @@ function renderSections() {
                 </table>
             </div>
 
+            <!-- عرض الموبايل -->
             <div class="mobile-card-view space-y-2">
                 ${sec.items.map((it, itemIdx) => `
                     <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">
@@ -125,7 +148,7 @@ function renderSections() {
                                 <input type="number" value="${it.price}" onchange="updateItemDetails(${secIdx},${itemIdx}, 'price', this.value)" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs text-center">
                             </div>
                         </div>
-                        <div class="text-left font-bold text-xs text-emerald-700 pt-1">الإجمالي: ${(it.qty * it.price).toLocaleString()} جنية</div>
+                        <div class="text-left font-bold text-xs text-emerald-700 pt-1">الإجمالي: ${((it.qty || 0) * (it.price || 0)).toLocaleString()} جنية</div>
                     </div>
                 `).join('')}
             </div>
@@ -172,9 +195,20 @@ function addSelectedSectionTableToCurrentClient() {
 function addItemToSectionPrompt(secIdx) {
     const itemName = prompt("أدخل اسم الصنف:");
     if (!itemName) return;
-    const price = parseFloat(prompt("أدخل السعر:", "0")) || 0;
-    const qty = parseFloat(prompt("أدخل الكمية:", "1")) || 1;
+    
+    // البحث إذا كان هناك ملحق فرعي تلقائي بالكتالوج
+    const matchedCatalogItem = catalogItems.find(i => i.name.toLowerCase() === itemName.trim().toLowerCase());
+    let price = matchedCatalogItem ? matchedCatalogItem.price : parseFloat(prompt("أدخل السعر:", "0")) || 0;
+    let qty = matchedCatalogItem ? parseFloat(matchedCatalogItem.defaultQty) || 1 : parseFloat(prompt("أدخل الكمية:", "1")) || 1;
+
     activeSections[secIdx].items.push({ name: itemName, price: price, qty: qty });
+
+    // البحث عن الملحقات التلقائية وإدراجها فوراً
+    const autoSubs = catalogItems.filter(i => i.parentItem && i.parentItem.toLowerCase() === itemName.trim().toLowerCase() && i.isAutoSub);
+    autoSubs.forEach(sub => {
+        activeSections[secIdx].items.push({ name: sub.name, price: sub.price, qty: parseFloat(sub.defaultQty) || 1 });
+    });
+
     renderSections();
     calculateGrandTotal();
 }
@@ -196,7 +230,114 @@ function calculateGrandTotal() {
     if (enWords) enWords.value = total > 0 ? `Egyptian Pounds Only ${total.toLocaleString()}` : "";
 }
 
-// إدارة الكتالوج الثابت
+// ==========================================
+// 5️⃣ إدارة بناء وتأليف الباقات المجمعة ✨
+// ==========================================
+function openCreatePackageModal() {
+    currentPackageBuilderItems = [];
+    document.getElementById('pkg-title-input').value = "";
+    document.getElementById('pkg-badge-input').value = "باقة مجهزة";
+    document.getElementById('pkg-item-search-input').value = "";
+    renderPackageBuilderItemsList();
+    document.getElementById('create-package-modal')?.classList.remove('hidden');
+}
+
+function closeCreatePackageModal() {
+    document.getElementById('create-package-modal')?.classList.add('hidden');
+}
+
+function addItemToPackageBuilder() {
+    const input = document.getElementById('pkg-item-search-input');
+    const val = input ? input.value.trim() : "";
+    if (!val) {
+        alert("يرجى اختيار أو كتابة صنف أولاً!");
+        return;
+    }
+
+    const matched = catalogItems.find(i => i.name.toLowerCase() === val.toLowerCase());
+    const itemToAdd = {
+        name: val,
+        price: matched ? matched.price : 0,
+        qty: matched ? parseFloat(matched.defaultQty) || 1 : 1
+    };
+
+    currentPackageBuilderItems.push(itemToAdd);
+    if (input) input.value = "";
+    renderPackageBuilderItemsList();
+}
+
+function renderPackageBuilderItemsList() {
+    const listContainer = document.getElementById('pkg-items-list');
+    if (!listContainer) return;
+
+    if (currentPackageBuilderItems.length === 0) {
+        listContainer.innerHTML = `<div class="text-center text-slate-400 text-xs py-3">لم يتم إضافة أصناف للباقة حتى الآن.</div>`;
+        return;
+    }
+
+    listContainer.innerHTML = currentPackageBuilderItems.map((it, idx) => `
+        <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200 text-xs">
+            <span class="font-bold text-slate-800">${it.name}</span>
+            <div class="flex items-center gap-2">
+                <span class="text-emerald-700 font-bold">${it.price} ج</span>
+                <span class="text-slate-500">x${it.qty}</span>
+                <button onclick="removePackageBuilderItem(${idx})" class="text-rose-500 font-bold text-sm mr-1">✕</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function removePackageBuilderItem(idx) {
+    currentPackageBuilderItems.splice(idx, 1);
+    renderPackageBuilderItemsList();
+}
+
+function saveNewCreatedPackage() {
+    const title = document.getElementById('pkg-title-input')?.value.trim();
+    const badge = document.getElementById('pkg-badge-input')?.value.trim() || "باقة مجهزة";
+
+    if (!title) {
+        alert("يرجى كتابة اسم الباقة أولاً!");
+        return;
+    }
+    if (currentPackageBuilderItems.length === 0) {
+        alert("يرجى إضافة صنف واحد على الأقل داخل الباقة!");
+        return;
+    }
+
+    const newPkg = { title, badge, items: [...currentPackageBuilderItems] };
+    packagesList.push(newPkg);
+    localStorage.setItem('ali_packages_list', JSON.stringify(packagesList));
+
+    closeCreatePackageModal();
+    alert(`تم حفظ الباقة (${title}) بالسيستم بنجاح! يمكن اختيارها الآن لإدراجها بالفاتورة.`);
+}
+
+function addSelectedPackageTableToCurrentClient() {
+    const input = document.getElementById('package-picker-input');
+    const val = input ? input.value.trim() : "";
+    if (!val) {
+        alert("يرجى اختيار باقة مجمعة لإدراجها!");
+        return;
+    }
+
+    const pkg = packagesList.find(p => p.title.toLowerCase() === val.toLowerCase());
+    if (pkg) {
+        activeSections.push({
+            title: pkg.title,
+            items: pkg.items.map(i => ({ name: i.name, price: i.price, qty: i.qty }))
+        });
+        if (input) input.value = "";
+        renderSections();
+        calculateGrandTotal();
+    } else {
+        alert("لم يتم العثور على الباقة المحددة!");
+    }
+}
+
+// ==========================================
+// 6️⃣ الكتالوج الثابت والملحقات
+// ==========================================
 function openCatalogModal() {
     renderCatalogModalTable();
     document.getElementById('catalog-modal')?.classList.remove('hidden');
@@ -288,10 +429,14 @@ function addNewItemToCatalog() {
     alert(`تم إضافة الصنف (${name}) إلى الكتالوج الثابت بنجاح!`);
 }
 
-// تفاعلات القوائم المنسدلة والبحث الفوري
+// ==========================================
+// 7️⃣ البحث الفوري والقوائم المنسدلة للكل
+// ==========================================
 function setupDropdownListeners() {
     const clientInput = document.getElementById('client-search-input');
     const sectionInput = document.getElementById('section-picker-input');
+    const pkgPickerInput = document.getElementById('package-picker-input');
+    const pkgItemSearchInput = document.getElementById('pkg-item-search-input');
     const dropdown = document.getElementById('custom-dropdown-suggestions');
 
     if (clientInput && dropdown) {
@@ -301,9 +446,7 @@ function setupDropdownListeners() {
             if (matches.length > 0) {
                 dropdown.innerHTML = matches.map(m => `<div class="p-2.5 hover:bg-slate-100 cursor-pointer text-xs border-b last:border-0" onclick="selectClient('${m.name}')">${m.name} (${m.phone || 'بدون هاتف'})</div>`).join('');
                 showDropdownUnderElement(clientInput, dropdown);
-            } else {
-                dropdown.classList.add('hidden');
-            }
+            } else { dropdown.classList.add('hidden'); }
         });
     }
 
@@ -314,9 +457,29 @@ function setupDropdownListeners() {
             if (matches.length > 0) {
                 dropdown.innerHTML = matches.map(m => `<div class="p-2.5 hover:bg-slate-100 cursor-pointer text-xs border-b last:border-0" onclick="selectSection('${m}')">${m}</div>`).join('');
                 showDropdownUnderElement(sectionInput, dropdown);
-            } else {
-                dropdown.classList.add('hidden');
-            }
+            } else { dropdown.classList.add('hidden'); }
+        });
+    }
+
+    if (pkgPickerInput && dropdown) {
+        pkgPickerInput.addEventListener('input', () => {
+            const query = pkgPickerInput.value.trim().toLowerCase();
+            const matches = packagesList.filter(p => p.title.toLowerCase().includes(query));
+            if (matches.length > 0) {
+                dropdown.innerHTML = matches.map(m => `<div class="p-2.5 hover:bg-slate-100 cursor-pointer text-xs border-b last:border-0 flex justify-between" onclick="selectPackage('${m.title}')"><span>${m.title}</span><span class="text-indigo-600 font-bold">${m.badge}</span></div>`).join('');
+                showDropdownUnderElement(pkgPickerInput, dropdown);
+            } else { dropdown.classList.add('hidden'); }
+        });
+    }
+
+    if (pkgItemSearchInput && dropdown) {
+        pkgItemSearchInput.addEventListener('input', () => {
+            const query = pkgItemSearchInput.value.trim().toLowerCase();
+            const matches = catalogItems.filter(i => i.name.toLowerCase().includes(query));
+            if (matches.length > 0) {
+                dropdown.innerHTML = matches.map(m => `<div class="p-2.5 hover:bg-slate-100 cursor-pointer text-xs border-b last:border-0 flex justify-between" onclick="selectPkgItemBuilder('${m.name}')"><span>${m.name}</span><span class="text-emerald-600 font-bold">${m.price} ج</span></div>`).join('');
+                showDropdownUnderElement(pkgItemSearchInput, dropdown);
+            } else { dropdown.classList.add('hidden'); }
         });
     }
 
@@ -348,11 +511,23 @@ function selectSection(name) {
     document.getElementById('custom-dropdown-suggestions')?.classList.add('hidden');
 }
 
-// إدارة النوافذ والعملاء
+function selectPackage(title) {
+    const input = document.getElementById('package-picker-input');
+    if (input) input.value = title;
+    document.getElementById('custom-dropdown-suggestions')?.classList.add('hidden');
+}
+
+function selectPkgItemBuilder(itemName) {
+    const input = document.getElementById('pkg-item-search-input');
+    if (input) input.value = itemName;
+    document.getElementById('custom-dropdown-suggestions')?.classList.add('hidden');
+}
+
+// ==========================================
+// 8️⃣ إدارة العملاء والسحابة (Cloud Sync)
+// ==========================================
 function openAddClientModal() { document.getElementById('client-modal')?.classList.remove('hidden'); }
 function closeAddClientModal() { document.getElementById('client-modal')?.classList.add('hidden'); }
-function openCreatePackageModal() { document.getElementById('create-package-modal')?.classList.remove('hidden'); }
-function closeCreatePackageModal() { document.getElementById('create-package-modal')?.classList.add('hidden'); }
 
 async function createNewClientAndSwitch() {
     const name = document.getElementById('new-client-name')?.value.trim();
