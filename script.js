@@ -19,7 +19,7 @@ try {
     console.error("Firebase Initialization Error: ", e);
 }
 
-// البيانات الأساسية والكتالوج
+// الكتالوج الافتراضي والأصناف
 let catalogItems = JSON.parse(localStorage.getItem('ali_catalog_items')) || [
     { name: "انفرتر طاقة شمسية 50 حصان", price: 45000, defaultQty: 1, category: "الانفرترات", parentItem: "", isAutoSub: false },
     { name: "لوح طاقة شمسية 550 واط", price: 3200, defaultQty: 10, category: "الألواح الشمسية", parentItem: "", isAutoSub: false },
@@ -196,6 +196,98 @@ function calculateGrandTotal() {
     if (enWords) enWords.value = total > 0 ? `Egyptian Pounds Only ${total.toLocaleString()}` : "";
 }
 
+// إدارة الكتالوج الثابت
+function openCatalogModal() {
+    renderCatalogModalTable();
+    document.getElementById('catalog-modal')?.classList.remove('hidden');
+}
+
+function closeCatalogModal() {
+    document.getElementById('catalog-modal')?.classList.add('hidden');
+}
+
+function renderCatalogModalTable() {
+    const desktopTbody = document.getElementById('catalog-modal-tbody-desktop');
+    const mobileList = document.getElementById('catalog-modal-mobile-list');
+    
+    if (desktopTbody) {
+        desktopTbody.innerHTML = catalogItems.map((item, idx) => `
+            <tr class="border-b hover:bg-slate-50">
+                <td class="p-2"><input type="text" value="${item.name}" onchange="updateCatalogItem(${idx}, 'name', this.value)" class="w-full bg-transparent outline-none"></td>
+                <td class="p-2 text-center"><input type="number" value="${item.price}" onchange="updateCatalogItem(${idx}, 'price', this.value)" class="w-20 text-center bg-slate-50 border rounded p-1"></td>
+                <td class="p-2 text-center"><input type="text" value="${item.defaultQty}" onchange="updateCatalogItem(${idx}, 'defaultQty', this.value)" class="w-16 text-center bg-slate-50 border rounded p-1"></td>
+                <td class="p-2 text-center"><input type="text" value="${item.category}" onchange="updateCatalogItem(${idx}, 'category', this.value)" class="w-24 text-center bg-slate-50 border rounded p-1"></td>
+                <td class="p-2 text-center"><input type="text" value="${item.parentItem || ''}" onchange="updateCatalogItem(${idx}, 'parentItem', this.value)" class="w-28 text-center bg-slate-50 border rounded p-1"></td>
+                <td class="p-2 text-center"><input type="checkbox" ${item.isAutoSub ? 'checked' : ''} onchange="updateCatalogItem(${idx}, 'isAutoSub', this.checked)"></td>
+                <td class="p-2 text-center"><button onclick="deleteCatalogItem(${idx})" class="text-rose-500 font-bold">🗑️</button></td>
+            </tr>
+        `).join('');
+    }
+
+    if (mobileList) {
+        mobileList.innerHTML = catalogItems.map((item, idx) => `
+            <div class="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
+                <div class="flex justify-between items-center">
+                    <input type="text" value="${item.name}" onchange="updateCatalogItem(${idx}, 'name', this.value)" class="font-bold text-xs bg-slate-50 border rounded p-1 flex-1">
+                    <button onclick="deleteCatalogItem(${idx})" class="text-rose-500 text-xs font-bold mr-2">حذف</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                        <span class="text-[10px] text-slate-500">السعر:</span>
+                        <input type="number" value="${item.price}" onchange="updateCatalogItem(${idx}, 'price', this.value)" class="w-full bg-slate-50 border rounded p-1 text-center">
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500">الكمية:</span>
+                        <input type="text" value="${item.defaultQty}" onchange="updateCatalogItem(${idx}, 'defaultQty', this.value)" class="w-full bg-slate-50 border rounded p-1 text-center">
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+function updateCatalogItem(idx, field, val) {
+    if (field === 'price') catalogItems[idx][field] = parseFloat(val) || 0;
+    else catalogItems[idx][field] = val;
+    localStorage.setItem('ali_catalog_items', JSON.stringify(catalogItems));
+}
+
+function deleteCatalogItem(idx) {
+    catalogItems.splice(idx, 1);
+    localStorage.setItem('ali_catalog_items', JSON.stringify(catalogItems));
+    renderCatalogModalTable();
+}
+
+function saveCatalogModalChanges() {
+    localStorage.setItem('ali_catalog_items', JSON.stringify(catalogItems));
+    closeCatalogModal();
+    alert("تم حفظ تحديثات الكتالوج بنجاح!");
+}
+
+function addNewItemToCatalog() {
+    const name = document.getElementById('new-item-name')?.value.trim();
+    const price = parseFloat(document.getElementById('new-item-price')?.value) || 0;
+    const qty = document.getElementById('new-item-qty')?.value || "1";
+    const category = document.getElementById('new-item-category')?.value || "عام";
+    const parentItem = document.getElementById('new-item-sub-input')?.value.trim() || "";
+    const isAutoSub = document.getElementById('new-item-auto-checkbox')?.checked || false;
+
+    if (!name) {
+        alert("يرجى إدخال اسم الصنف الجديد!");
+        return;
+    }
+
+    catalogItems.push({ name, price, defaultQty: qty, category, parentItem, isAutoSub });
+    localStorage.setItem('ali_catalog_items', JSON.stringify(catalogItems));
+
+    document.getElementById('new-item-name').value = "";
+    document.getElementById('new-item-price').value = "";
+    document.getElementById('new-item-sub-input').value = "";
+    if (document.getElementById('new-item-auto-checkbox')) document.getElementById('new-item-auto-checkbox').checked = false;
+
+    alert(`تم إضافة الصنف (${name}) إلى الكتالوج الثابت بنجاح!`);
+}
+
 // تفاعلات القوائم المنسدلة والبحث الفوري
 function setupDropdownListeners() {
     const clientInput = document.getElementById('client-search-input');
@@ -256,11 +348,9 @@ function selectSection(name) {
     document.getElementById('custom-dropdown-suggestions')?.classList.add('hidden');
 }
 
-// إدارة النوافذ
+// إدارة النوافذ والعملاء
 function openAddClientModal() { document.getElementById('client-modal')?.classList.remove('hidden'); }
 function closeAddClientModal() { document.getElementById('client-modal')?.classList.add('hidden'); }
-function openCatalogModal() { document.getElementById('catalog-modal')?.classList.remove('hidden'); }
-function closeCatalogModal() { document.getElementById('catalog-modal')?.classList.add('hidden'); }
 function openCreatePackageModal() { document.getElementById('create-package-modal')?.classList.remove('hidden'); }
 function closeCreatePackageModal() { document.getElementById('create-package-modal')?.classList.add('hidden'); }
 
