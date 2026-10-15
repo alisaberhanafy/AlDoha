@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تنسيق وطباعة الصور في صفحة واحدة - ALI SABER SYSTEM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;900&display=swap" rel="stylesheet">
+    <!-- مكتبة إنشاء ملفات PDF عالية الدقة -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Cairo', sans-serif !important;
+            margin: 0;
+            padding: 0;
+            background-color: #f1f5f9;
+            -webkit-font-smoothing: antialiased;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .a4-sheet {
+            width: 210mm;
+            height: 290mm;
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            html, body {
+                width: 210mm !important;
+                height: 297mm !important;
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+            .a4-sheet {
+                width: 210mm !important;
+                height: 290mm !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 8mm !important;
+                margin: 0 auto !important;
+            }
+            @page { size: A4 portrait; margin: 0mm !important; }
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-6">
+
+    <!-- لوحة التحكم الإدارية -->
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6 border border-slate-200 no-print space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 border-b pb-3">
+            <div>
+                <h1 class="text-base sm:text-xl font-black text-slate-900">🖼️ أداة طباعة وتنسيق الصور في صفحة واحدة</h1>
+                <p class="text-[11px] text-slate-500 font-semibold mt-0.5">رفع صورة واحدة وتحديد التكرار بمقاس A4 وتنسيقها للطباعة أو المشاركة</p>
+            </div>
+            
+            <!-- أزرار الإجراءات -->
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button onclick="window.print()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-1.5">
+                    <span>🖨️</span> طباعة / PDF
+                </button>
+                <button onclick="downloadAsImage()" class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-1.5">
+                    <span>🖼️</span> حفظ كصورة
+                </button>
+                <button onclick="openShareModal()" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-1.5">
+                    <span>📲</span> مشاركة
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+            <!-- رفع صورة واحدة -->
+            <div class="sm:col-span-6">
+                <label class="block text-xs font-bold text-slate-700 mb-1">اختر الصورة من جهازك:</label>
+                <input type="file" id="image-input" accept="image/*" onchange="handleSingleImageUpload(event)" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-200 rounded-xl cursor-pointer">
+            </div>
+
+            <!-- عدد النسخ في الصف الواحد -->
+            <div class="sm:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 mb-1">عدد النسخ في الصف الواحد:</label>
+                <select id="cols-select" onchange="renderGallery()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-bold outline-none focus:border-indigo-600">
+                    <option value="1" selected>نسخة واحدة بالصف (1)</option>
+                    <option value="2">نسختين بالصف (2)</option>
+                    <option value="3">3 نسخ بالصف (3)</option>
+                    <option value="4">4 نسخ بالصف (4)</option>
+                </select>
+            </div>
+
+            <!-- عدد الصفوف المكررة -->
+            <div class="sm:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 mb-1">عدد الصفوف المكررة:</label>
+                <select id="rows-select" onchange="renderGallery()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-600">
+                    <option value="1">صف واحد (1)</option>
+                    <option value="2" selected>صفين مكررين (2)</option>
+                    <option value="3">3 صفوف مكررة (3)</option>
+                    <option value="4">4 صفوف مكررة (4)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ورقة A4 للطباعة والمعاينة -->
+    <div id="print-paper" class="a4-sheet rounded-xl shadow-2xl border border-slate-300 p-4 flex flex-col justify-between overflow-hidden">
+        <div class="text-center border-b border-slate-200 pb-1 mb-2 shrink-0">
+            <h2 class="text-xs sm:text-base font-black text-indigo-950">ALI SABER HANAFY SYSTEM</h2>
+            <p class="text-[9px] text-slate-500 font-bold">سيستم الطباعة الاحترافية</p>
+        </div>
+
+        <div id="images-gallery" class="flex flex-col gap-3 flex-1 w-full h-full overflow-hidden my-auto p-1 items-center justify-center">
+            <div class="text-center text-slate-400 text-xs py-24 font-bold no-print my-auto">
+                قم باختيار صورة من الأعلى لتنسيقها وتكرارها هنا تلقائياً...
+            </div>
+        </div>
+
+        <div class="text-center border-t border-slate-200 pt-1 mt-2 text-[8px] sm:text-[9px] text-slate-400 font-bold flex justify-between shrink-0">
+            <span>تاريخ الطباعة: <span id="print-date"></span></span>
+            <span>صفحة 1 من 1</span>
+        </div>
+    </div>
+
+    <!-- نافذة المشاركة -->
+    <div id="share-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 p-5 space-y-4 text-center">
+            <h3 class="font-black text-base text-slate-900">📲 اختر صيغة المشاركة</h3>
+            <p class="text-xs text-slate-500 font-bold">كيف ترغب في إرسال المستند عبر الموبايل؟</p>
+            
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="shareAs('pdf')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold p-3 rounded-xl text-xs flex flex-col items-center justify-center gap-1.5 transition shadow-sm">
+                    <span class="text-xl">📄</span>
+                    <span>ملف PDF</span>
+                </button>
+                <button onclick="shareAs('image')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl text-xs flex flex-col items-center justify-center gap-1.5 transition shadow-sm">
+                    <span class="text-xl">🖼️</span>
+                    <span>صورة (PNG)</span>
+                </button>
+            </div>
+
+            <button onclick="closeShareModal()" class="w-full bg-slate-100 text-slate-600 font-bold py-2 rounded-xl text-xs hover:bg-slate-200 transition mt-2">إلغاء</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('print-date').innerText = new Date().toLocaleDateString('ar-EG');
+        let singleImageSrc = "";
+
+        function handleSingleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                singleImageSrc = event.target.result;
+                renderGallery();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderGallery() {
+            const gallery = document.getElementById('images-gallery');
+            const colsCount = parseInt(document.getElementById('cols-select').value) || 1;
+            const rowsCount = parseInt(document.getElementById('rows-select').value) || 1;
+            const totalCount = colsCount * rowsCount;
+
+            if (!singleImageSrc) {
+                gallery.className = `flex flex-col gap-3 flex-1 w-full h-full overflow-hidden my-auto p-1 items-center justify-center`;
+                gallery.innerHTML = `<div class="text-center text-slate-400 text-xs py-24 font-bold no-print my-auto">قم باختيار صورة من الأعلى لتنسيقها وتكرارها هنا تلقائياً...</div>`;
+                return;
+            }
+
+            if (colsCount === 1) {
+                gallery.className = `flex flex-col gap-3 flex-1 w-full h-full overflow-hidden my-auto p-1 items-center justify-center`;
+                gallery.style.gridTemplateColumns = '';
+                gallery.style.gridTemplateRows = '';
+            } else {
+                gallery.className = `grid gap-3 flex-1 w-full h-full overflow-hidden my-auto p-1`;
+                gallery.style.gridTemplateColumns = `repeat(${colsCount}, minmax(0, 1fr))`;
+                gallery.style.gridTemplateRows = `repeat(${rowsCount}, minmax(0, 1fr))`;
+            }
+
+            let imagesArray = [];
+            for (let i = 0; i < totalCount; i++) {
+                imagesArray.push(singleImageSrc);
+            }
+
+            const cardWidthClass = colsCount === 1 ? 'max-w-[450px] w-full mx-auto' : 'w-full h-full';
+
+            gallery.innerHTML = imagesArray.map((imgSrc) => `
+                <div class="relative group bg-slate-50 border border-slate-200 rounded-lg overflow-hidden p-2 flex items-center justify-center min-h-0 ${cardWidthClass}">
+                    <img src="${imgSrc}" class="object-contain w-full h-full max-w-full max-h-full rounded mx-auto block">
+                    <button onclick="clearUploadedImage()" class="no-print absolute top-1 right-1 bg-rose-600 text-white rounded-full w-5 h-5 text-[10px] font-bold shadow-md hover:bg-rose-700 transition flex items-center justify-center" title="حذف الصورة">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function clearUploadedImage() {
+            singleImageSrc = "";
+            document.getElementById('image-input').value = "";
+            renderGallery();
+        }
+
+        function openShareModal() {
+            if (!singleImageSrc) {
+                alert("يرجى اختيار صورة أولاً للمشاركة!");
+                return;
+            }
+            document.getElementById('share-modal').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.add('hidden');
+        }
+
+        // توليد مساحة ورقة A4 نقية في الذاكرة لتجنب أي إزاحة يسارية
+        function generatePureA4Canvas() {
+            return new Promise((resolve) => {
+                const colsCount = parseInt(document.getElementById('cols-select').value) || 1;
+                const rowsCount = parseInt(document.getElementById('rows-select').value) || 1;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 794 * 2;
+                canvas.height = 1123 * 2;
+                const ctx = canvas.getContext('2d');
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#1e1b4b';
+                ctx.font = 'bold 32px Cairo, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('ALI SABER HANAFY SYSTEM', canvas.width / 2, 80);
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = 'bold 20px Cairo, sans-serif';
+                ctx.fillText('سيستم الطباعة الاحترافية', canvas.width / 2, 120);
+
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(80, 140);
+                ctx.lineTo(canvas.width - 80, 140);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(80, canvas.height - 100);
+                ctx.lineTo(canvas.width - 80, canvas.height - 100);
+                ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = 'bold 18px Cairo, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText('تاريخ الطباعة: ' + new Date().toLocaleDateString('ar-EG'), canvas.width - 90, canvas.height - 60);
+
+                ctx.textAlign = 'left';
+                ctx.fillText('صفحة 1 من 1', 90, canvas.height - 60);
+
+                const areaX = 80;
+                const areaY = 160;
+                const areaW = canvas.width - 160;
+                const areaH = canvas.height - 280;
+
+                const img = new Image();
+                img.onload = () => {
+                    const cellW = areaW / colsCount;
+                    const cellH = areaH / rowsCount;
+
+                    for (let r = 0; r < rowsCount; r++) {
+                        for (let c = 0; c < colsCount; c++) {
+                            const cellX = areaX + c * cellW;
+                            const cellY = areaY + r * cellH;
+
+                            const padding = 16;
+                            const maxW = cellW - padding * 2;
+                            const maxH = cellH - padding * 2;
+
+                            let drawW = maxW;
+                            let drawH = (img.height / img.width) * drawW;
+
+                            if (drawH > maxH) {
+                                drawH = maxH;
+                                drawW = (img.width / img.height) * drawH;
+                            }
+
+                            const drawX = cellX + (cellW - drawW) / 2;
+                            const drawY = cellY + (cellH - drawH) / 2;
+
+                            ctx.fillStyle = '#f8fafc';
+                            ctx.strokeStyle = '#e2e8f0';
+                            ctx.lineWidth = 2;
+                            ctx.fillRect(drawX - 8, drawY - 8, drawW + 16, drawH + 16);
+                            ctx.strokeRect(drawX - 8, drawY - 8, drawW + 16, drawH + 16);
+
+                            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                        }
+                    }
+                    resolve(canvas);
+                };
+                img.src = singleImageSrc;
+            });
+        }
+
+        async function downloadAsImage() {
+            if (!singleImageSrc) {
+                alert("يرجى اختيار صورة أولاً!");
+                return;
+            }
+            const canvas = await generatePureA4Canvas();
+            const link = document.createElement('a');
+            link.download = `ALI_SABER_PRINT_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        async function shareAs(type) {
+            closeShareModal();
+            try {
+                const canvas = await generatePureA4Canvas();
+
+                if (type === 'image') {
+                    canvas.toBlob(async (blob) => {
+                        const file = new File([blob], `ALI_SABER_PRINT_${Date.now()}.png`, { type: 'image/png' });
+                        if (navigator.share && navigator.canShare({ files: [file] })) {
+                            await navigator.share({ title: 'ALI SABER SYSTEM', files: [file] });
+                        } else {
+                            downloadAsImage();
+                        }
+                    }, 'image/png');
+                } else if (type === 'pdf') {
+                    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                    const { jsPDF } = window.jspdf;
+                    
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+
+                    const pdfArrayBuffer = pdf.output('arraybuffer');
+                    const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+                    const file = new File([pdfBlob], `ALI_SABER_PRINT_${Date.now()}.pdf`, { type: 'application/pdf' });
+
+                    if (navigator.share && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ title: 'ALI SABER SYSTEM', files: [file] });
+                    } else {
+                        pdf.save(`ALI_SABER_PRINT_${Date.now()}.pdf`);
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                alert("حدث خطأ أثناء إعداد الملف، يرجى المحاولة مرة أخرى.");
+            }
+        }
+    </script>
+</body>
+</html>
