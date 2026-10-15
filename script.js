@@ -1,4 +1,4 @@
-// تهيئة وتوصيل Firebase Firestore السحابية بنجاح وبدون أخطاء
+// تهيئة وتوصيل Firebase Firestore السحابية بنجاح
 const firebaseConfig = {
   apiKey: "AIzaSyCfTIA-9DwNBlhBIdfQCX4JMIW9aGyzRb4",
   authDomain: "ali-saber-system.firebaseapp.com",
@@ -19,7 +19,7 @@ try {
     console.error("Firebase Initialization Error: ", e);
 }
 
-// الكتالوج الافتراضي
+// البيانات الأساسية والكتالوج
 let catalogItems = JSON.parse(localStorage.getItem('ali_catalog_items')) || [
     { name: "انفرتر طاقة شمسية 50 حصان", price: 45000, defaultQty: 1, category: "الانفرترات", parentItem: "", isAutoSub: false },
     { name: "لوح طاقة شمسية 550 واط", price: 3200, defaultQty: 10, category: "الألواح الشمسية", parentItem: "", isAutoSub: false },
@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSections();
     calculateGrandTotal();
     setupDropdownListeners();
+    loadClientsFromCloud();
 });
 
 function initDatePicker() {
@@ -60,7 +61,7 @@ function renderSections() {
     const container = document.getElementById('sections-container');
     if (!container) return;
     if (activeSections.length === 0) {
-        container.innerHTML = `<div class="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500 text-xs">لا يوجد جداول مضافة حالياً. اختر قسماً أو باقة من الأعلى لإدراج جدول جديدة بالفاتورة.</div>`;
+        container.innerHTML = `<div class="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500 text-xs">لا يوجد جداول مضافة حالياً. اختر قسماً أو باقة من الأعلى لإدراج جدول جديد بالفاتورة.</div>`;
         return;
     }
 
@@ -71,7 +72,6 @@ function renderSections() {
                 <button onclick="removeSection(${secIdx})" class="text-rose-500 hover:text-rose-700 text-xs font-bold">🗑️ حذف الجدول</button>
             </div>
             
-            <!-- جدول الكمبيوتر -->
             <div class="desktop-table-view overflow-x-auto">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
@@ -107,7 +107,6 @@ function renderSections() {
                 </table>
             </div>
 
-            <!-- بطاقات الموبايل -->
             <div class="mobile-card-view space-y-2">
                 ${sec.items.map((it, itemIdx) => `
                     <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">
@@ -197,7 +196,156 @@ function calculateGrandTotal() {
     if (enWords) enWords.value = total > 0 ? `Egyptian Pounds Only ${total.toLocaleString()}` : "";
 }
 
-// دالة الحفظ السحابي
+// تفاعلات القوائم المنسدلة والبحث الفوري
+function setupDropdownListeners() {
+    const clientInput = document.getElementById('client-search-input');
+    const sectionInput = document.getElementById('section-picker-input');
+    const dropdown = document.getElementById('custom-dropdown-suggestions');
+
+    if (clientInput && dropdown) {
+        clientInput.addEventListener('input', () => {
+            const query = clientInput.value.trim().toLowerCase();
+            const matches = clientsList.filter(c => c.name.toLowerCase().includes(query));
+            if (matches.length > 0) {
+                dropdown.innerHTML = matches.map(m => `<div class="p-2.5 hover:bg-slate-100 cursor-pointer text-xs border-b last:border-0" onclick="selectClient('${m.name}')">${m.name} (${m.phone || 'بدون هاتف'})</div>`).join('');
+                showDropdownUnderElement(clientInput, dropdown);
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    if (sectionInput && dropdown) {
+        sectionInput.addEventListener('input', () => {
+            const query = sectionInput.value.trim().toLowerCase();
+            const matches = catalogCategories.filter(c => c.toLowerCase().includes(query));
+            if (matches.length > 0) {
+                dropdown.innerHTML = matches.map(m => `<div class="p-2.5 hover:bg-slate-100 cursor-pointer text-xs border-b last:border-0" onclick="selectSection('${m}')">${m}</div>`).join('');
+                showDropdownUnderElement(sectionInput, dropdown);
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#custom-dropdown-suggestions') && !e.target.closest('input')) {
+            if (dropdown) dropdown.classList.add('hidden');
+        }
+    });
+}
+
+function showDropdownUnderElement(el, dropdown) {
+    const rect = el.getBoundingClientRect();
+    dropdown.style.top = `${window.scrollY + rect.bottom + 4}px`;
+    dropdown.style.left = `${window.scrollX + rect.left}px`;
+    dropdown.style.width = `${rect.width}px`;
+    dropdown.classList.remove('hidden');
+}
+
+function selectClient(name) {
+    const clientInput = document.getElementById('client-search-input');
+    if (clientInput) clientInput.value = name;
+    document.getElementById('custom-dropdown-suggestions')?.classList.add('hidden');
+    loadClientDataFromCloudOrLocal(name);
+}
+
+function selectSection(name) {
+    const sectionInput = document.getElementById('section-picker-input');
+    if (sectionInput) sectionInput.value = name;
+    document.getElementById('custom-dropdown-suggestions')?.classList.add('hidden');
+}
+
+// إدارة النوافذ
+function openAddClientModal() { document.getElementById('client-modal')?.classList.remove('hidden'); }
+function closeAddClientModal() { document.getElementById('client-modal')?.classList.add('hidden'); }
+function openCatalogModal() { document.getElementById('catalog-modal')?.classList.remove('hidden'); }
+function closeCatalogModal() { document.getElementById('catalog-modal')?.classList.add('hidden'); }
+function openCreatePackageModal() { document.getElementById('create-package-modal')?.classList.remove('hidden'); }
+function closeCreatePackageModal() { document.getElementById('create-package-modal')?.classList.add('hidden'); }
+
+async function createNewClientAndSwitch() {
+    const name = document.getElementById('new-client-name')?.value.trim();
+    if (!name) {
+        alert("يرجى إدخال اسم العميل!");
+        return;
+    }
+    const newClient = { 
+        name: name, 
+        phone: document.getElementById('new-client-phone')?.value || "", 
+        address: document.getElementById('new-client-address')?.value || "" 
+    };
+    
+    clientsList.push(newClient);
+    localStorage.setItem('ali_clients_list', JSON.stringify(clientsList));
+
+    const clientInput = document.getElementById('client-search-input');
+    if (clientInput) clientInput.value = name;
+    
+    closeAddClientModal();
+    activeSections = [];
+    renderSections();
+    calculateGrandTotal();
+
+    if (db) {
+        try {
+            await db.collection("clients").doc(name).set({ clientName: name, phone: newClient.phone, address: newClient.address, activeSections: [] }, { merge: true });
+        } catch (e) {
+            console.error("Error saving new client to cloud:", e);
+        }
+    }
+    alert(`تم إضافة العميل (${name}) بنجاح!`);
+}
+
+async function loadClientsFromCloud() {
+    if (!db) return;
+    try {
+        const snapshot = await db.collection("clients").get();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.clientName && !clientsList.some(c => c.name === data.clientName)) {
+                clientsList.push({ name: data.clientName, phone: data.phone || "", address: data.address || "" });
+            }
+        });
+        localStorage.setItem('ali_clients_list', JSON.stringify(clientsList));
+    } catch (e) {
+        console.error("Error loading clients:", e);
+    }
+}
+
+async function loadClientDataFromCloudOrLocal(clientName) {
+    let clientData = null;
+    if (db) {
+        try {
+            const doc = await db.collection("clients").doc(clientName).get();
+            if (doc.exists) {
+                clientData = doc.data();
+            }
+        } catch (e) {
+            console.error("Error loading client data:", e);
+        }
+    }
+    
+    if (!clientData) {
+        const local = localStorage.getItem(`client_${clientName}`);
+        if (local) clientData = JSON.parse(local);
+    }
+
+    if (clientData) {
+        if (document.getElementById('store-name-input')) document.getElementById('store-name-input').value = clientData.storeName || "";
+        if (document.getElementById('quote-date')) document.getElementById('quote-date').value = clientData.quoteDate || "";
+        if (document.getElementById('duration-text')) document.getElementById('duration-text').value = clientData.durationText || "";
+        if (document.getElementById('payment-terms-text')) document.getElementById('payment-terms-text').value = clientData.paymentTermsText || "";
+        if (document.getElementById('notes-text')) document.getElementById('notes-text').value = clientData.notesText || "";
+        if (document.getElementById('manager-name')) document.getElementById('manager-name').value = clientData.managerName || "";
+        activeSections = clientData.activeSections || [];
+    } else {
+        activeSections = [];
+    }
+    renderSections();
+    calculateGrandTotal();
+}
+
 async function saveCurrentClientData() {
     const clientNameInput = document.getElementById('client-search-input');
     const clientName = clientNameInput ? clientNameInput.value.trim() : "";
@@ -219,41 +367,19 @@ async function saveCurrentClientData() {
         updatedAt: new Date().toISOString()
     };
 
-    // حفظ محلي
     localStorage.setItem(`client_${clientName}`, JSON.stringify(currentData));
 
-    // حفظ سحابي في Firestore
     if (db) {
         try {
             await db.collection("clients").doc(clientName).set(currentData, { merge: true });
-            alert("تم حفظ بيانات العميل والسحابة بنجاح! يمكن فتح البيانات الآن من أي متصفح أو جهاز إلكتروني.");
+            alert("تم حفظ بيانات العميل وتحديث السحابة بنجاح!");
         } catch (err) {
             console.error("Firestore Save Error:", err);
-            alert("تم الحفظ محلياً فقط وتعذر الاتصال بالسحابة حالياً.");
+            alert("تم الحفظ محلياً بنجاح وتعذر الاتصال بالسحابة لحظياً.");
         }
     } else {
         alert("تم الحفظ محلياً بنجاح!");
     }
-}
-
-// فتح وإغلاق النوافذ
-function openAddClientModal() { document.getElementById('client-modal')?.classList.remove('hidden'); }
-function closeAddClientModal() { document.getElementById('client-modal')?.classList.add('hidden'); }
-function openCatalogModal() { document.getElementById('catalog-modal')?.classList.remove('hidden'); }
-function closeCatalogModal() { document.getElementById('catalog-modal')?.classList.add('hidden'); }
-function openCreatePackageModal() { document.getElementById('create-package-modal')?.classList.remove('hidden'); }
-function closeCreatePackageModal() { document.getElementById('create-package-modal')?.classList.add('hidden'); }
-
-function createNewClientAndSwitch() {
-    const name = document.getElementById('new-client-name')?.value.trim();
-    if (!name) return;
-    clientsList.push({ name: name, phone: document.getElementById('new-client-phone')?.value, address: document.getElementById('new-client-address')?.value });
-    localStorage.setItem('ali_clients_list', JSON.stringify(clientsList));
-    document.getElementById('client-search-input').value = name;
-    closeAddClientModal();
-    activeSections = [];
-    renderSections();
-    calculateGrandTotal();
 }
 
 function addNewSectionPrompt() {
@@ -262,6 +388,5 @@ function addNewSectionPrompt() {
     catalogCategories.push(secName);
     localStorage.setItem('ali_catalog_categories', JSON.stringify(catalogCategories));
     renderCategoriesOptions();
+    alert(`تم إضافة القسم (${secName}) بنجاح!`);
 }
-
-function setupDropdownListeners() {}
