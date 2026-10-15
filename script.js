@@ -22,7 +22,7 @@ try {
 }
 
 // ==========================================
-// 2️⃣ المتغيرات العامة وقواعد البيانات المحلية
+// 2️⃣ البيانات الأساسية وقواعد البيانات المحلية
 // ==========================================
 let catalogItems = JSON.parse(localStorage.getItem('ali_catalog_items')) || [
     { name: "انفرتر طاقة شمسية 50 حصان", price: 45000, defaultQty: 1, category: "الانفرترات", parentItem: "", isAutoSub: false },
@@ -44,7 +44,7 @@ let packagesList = JSON.parse(localStorage.getItem('ali_packages_list')) || [
 ];
 
 let activeSections = [];
-let currentPackageBuilderItems = []; // قائمة مؤقتة لبناء الباقة الحالية
+let currentPackageBuilderItems = [];
 
 // ==========================================
 // 3️⃣ عند تحميل الصفحة
@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateGrandTotal();
     setupDropdownListeners();
     loadClientsFromCloud();
+    injectManagementButtonsUI();
 });
 
 function initDatePicker() {
@@ -74,6 +75,31 @@ function renderCategoriesOptions() {
     catSelect.innerHTML = catalogCategories.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
+// حقن أزرار التحكم الإضافية (إدارة العملاء والباقات) بالواجهة تلقائياً
+function injectManagementButtonsUI() {
+    const clientParent = document.getElementById('client-search-input')?.parentElement;
+    if (clientParent && !document.getElementById('manage-clients-btn')) {
+        const btn = document.createElement('button');
+        btn.id = 'manage-clients-btn';
+        btn.innerHTML = '⚙️';
+        btn.className = 'bg-slate-700 hover:bg-slate-800 text-white px-2.5 py-2 rounded-lg text-xs font-bold transition shrink-0';
+        btn.title = 'إدارة وحذف العملاء';
+        btn.onclick = openManageClientsModal;
+        clientParent.appendChild(btn);
+    }
+
+    const pkgParent = document.getElementById('package-picker-input')?.parentElement;
+    if (pkgParent && !document.getElementById('manage-pkgs-btn')) {
+        const btn = document.createElement('button');
+        btn.id = 'manage-pkgs-btn';
+        btn.innerHTML = '⚙️';
+        btn.className = 'bg-indigo-700 hover:bg-indigo-800 text-white px-2.5 py-2 rounded-lg text-xs font-bold transition shrink-0';
+        btn.title = 'إدارة وتعديل وحذف الباقات';
+        btn.onclick = openManagePackagesModal;
+        pkgParent.appendChild(btn);
+    }
+}
+
 // ==========================================
 // 4️⃣ رسم وتحديث الجداول والفواتير
 // ==========================================
@@ -89,11 +115,12 @@ function renderSections() {
     container.innerHTML = activeSections.map((sec, secIdx) => `
         <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-4 space-y-3">
             <div class="flex justify-between items-center border-b pb-2">
-                <h4 class="font-bold text-sm text-indigo-950">${sec.title}</h4>
+                <div class="flex items-center gap-2">
+                    <input type="text" value="${sec.title}" onchange="updateSectionTitle(${secIdx}, this.value)" class="font-bold text-sm text-indigo-950 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg outline-none w-48 sm:w-64" title="تعديل اسم الجدول">
+                </div>
                 <button onclick="removeSection(${secIdx})" class="text-rose-500 hover:text-rose-700 text-xs font-bold">🗑️ حذف الجدول</button>
             </div>
             
-            <!-- عرض الكمبيوتر -->
             <div class="desktop-table-view overflow-x-auto">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead>
@@ -129,7 +156,6 @@ function renderSections() {
                 </table>
             </div>
 
-            <!-- عرض الموبايل -->
             <div class="mobile-card-view space-y-2">
                 ${sec.items.map((it, itemIdx) => `
                     <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">
@@ -156,6 +182,10 @@ function renderSections() {
             <button onclick="addItemToSectionPrompt(${secIdx})" class="w-full bg-slate-100 hover:bg-slate-200 border border-dashed border-slate-300 text-slate-700 py-2 rounded-xl text-xs font-bold no-print">+ إضافة صنف للجدول</button>
         </div>
     `).join('');
+}
+
+function updateSectionTitle(secIdx, val) {
+    activeSections[secIdx].title = val;
 }
 
 function updateItemDetails(secIdx, itemIdx, field, val) {
@@ -196,14 +226,12 @@ function addItemToSectionPrompt(secIdx) {
     const itemName = prompt("أدخل اسم الصنف:");
     if (!itemName) return;
     
-    // البحث إذا كان هناك ملحق فرعي تلقائي بالكتالوج
     const matchedCatalogItem = catalogItems.find(i => i.name.toLowerCase() === itemName.trim().toLowerCase());
     let price = matchedCatalogItem ? matchedCatalogItem.price : parseFloat(prompt("أدخل السعر:", "0")) || 0;
     let qty = matchedCatalogItem ? parseFloat(matchedCatalogItem.defaultQty) || 1 : parseFloat(prompt("أدخل الكمية:", "1")) || 1;
 
     activeSections[secIdx].items.push({ name: itemName, price: price, qty: qty });
 
-    // البحث عن الملحقات التلقائية وإدراجها فوراً
     const autoSubs = catalogItems.filter(i => i.parentItem && i.parentItem.toLowerCase() === itemName.trim().toLowerCase() && i.isAutoSub);
     autoSubs.forEach(sub => {
         activeSections[secIdx].items.push({ name: sub.name, price: sub.price, qty: parseFloat(sub.defaultQty) || 1 });
@@ -231,7 +259,7 @@ function calculateGrandTotal() {
 }
 
 // ==========================================
-// 5️⃣ إدارة بناء وتأليف الباقات المجمعة ✨
+// 5️⃣ إدارة وتعديل وحذف الباقات المجمعة ✨
 // ==========================================
 function openCreatePackageModal() {
     currentPackageBuilderItems = [];
@@ -310,7 +338,7 @@ function saveNewCreatedPackage() {
     localStorage.setItem('ali_packages_list', JSON.stringify(packagesList));
 
     closeCreatePackageModal();
-    alert(`تم حفظ الباقة (${title}) بالسيستم بنجاح! يمكن اختيارها الآن لإدراجها بالفاتورة.`);
+    alert(`تم حفظ الباقة (${title}) بالسيستم بنجاح!`);
 }
 
 function addSelectedPackageTableToCurrentClient() {
@@ -332,6 +360,55 @@ function addSelectedPackageTableToCurrentClient() {
         calculateGrandTotal();
     } else {
         alert("لم يتم العثور على الباقة المحددة!");
+    }
+}
+
+// نافذة إدارة وحذف وتعديل الباقات المجمعة
+function openManagePackagesModal() {
+    let modal = document.getElementById('manage-pkgs-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'manage-pkgs-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 no-print';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+                <div class="bg-indigo-950 text-white p-4 flex justify-between items-center shrink-0">
+                    <h3 class="font-bold text-sm">🛠️ إدارة وتعديل وحذف الباقات المجمعة</h3>
+                    <button onclick="document.getElementById('manage-pkgs-modal').classList.add('hidden')" class="text-rose-400 font-bold text-lg">✕</button>
+                </div>
+                <div class="p-4 space-y-3 overflow-y-auto flex-1 bg-slate-50" id="manage-pkgs-list"></div>
+                <div class="bg-slate-100 p-3 border-t text-left">
+                    <button onclick="document.getElementById('manage-pkgs-modal').classList.add('hidden')" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold">إغلاق</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    const list = document.getElementById('manage-pkgs-list');
+    if (packagesList.length === 0) {
+        list.innerHTML = `<div class="text-center text-slate-400 text-xs py-4">لا توجد باقات مجمعة مسجلة حالياً.</div>`;
+    } else {
+        list.innerHTML = packagesList.map((pkg, idx) => `
+            <div class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                <div>
+                    <h4 class="font-bold text-xs text-indigo-950">${pkg.title}</h4>
+                    <span class="text-[10px] text-slate-500">${pkg.items.length} أصناف</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="deletePackageItem(${idx})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold transition">حذف</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    modal.classList.remove('hidden');
+}
+
+function deletePackageItem(idx) {
+    if (confirm("هل أنت متأكد من حذف هذه الباقة؟")) {
+        packagesList.splice(idx, 1);
+        localStorage.setItem('ali_packages_list', JSON.stringify(packagesList));
+        openManagePackagesModal();
     }
 }
 
@@ -524,7 +601,7 @@ function selectPkgItemBuilder(itemName) {
 }
 
 // ==========================================
-// 8️⃣ إدارة العملاء والسحابة (Cloud Sync)
+// 8️⃣ إدارة وتعديل وحذف العملاء والسحابة
 // ==========================================
 function openAddClientModal() { document.getElementById('client-modal')?.classList.remove('hidden'); }
 function closeAddClientModal() { document.getElementById('client-modal')?.classList.add('hidden'); }
@@ -560,6 +637,73 @@ async function createNewClientAndSwitch() {
         }
     }
     alert(`تم إضافة العميل (${name}) بنجاح!`);
+}
+
+// نافذة إدارة وتعديل وحذف العملاء
+function openManageClientsModal() {
+    let modal = document.getElementById('manage-clients-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'manage-clients-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 no-print';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+                <div class="bg-slate-900 text-white p-4 flex justify-between items-center shrink-0">
+                    <h3 class="font-bold text-sm">👥 إدارة وتعديل وحذف العملاء</h3>
+                    <button onclick="document.getElementById('manage-clients-modal').classList.add('hidden')" class="text-rose-400 font-bold text-lg">✕</button>
+                </div>
+                <div class="p-4 space-y-3 overflow-y-auto flex-1 bg-slate-50" id="manage-clients-list"></div>
+                <div class="bg-slate-100 p-3 border-t text-left">
+                    <button onclick="document.getElementById('manage-clients-modal').classList.add('hidden')" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold">إغلاق</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    const list = document.getElementById('manage-clients-list');
+    if (clientsList.length === 0) {
+        list.innerHTML = `<div class="text-center text-slate-400 text-xs py-4">لا توجد عملاء مسجلين حالياً.</div>`;
+    } else {
+        list.innerHTML = clientsList.map((c, idx) => `
+            <div class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                <div class="flex-1 space-y-1">
+                    <input type="text" value="${c.name}" id="client-name-edit-${idx}" class="font-bold text-xs text-slate-900 bg-slate-50 border rounded px-2 py-1 w-full outline-none">
+                    <input type="text" value="${c.phone || ''}" id="client-phone-edit-${idx}" placeholder="الهاتف" class="text-[11px] text-slate-500 bg-slate-50 border rounded px-2 py-0.5 w-full outline-none">
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="updateClientDetails(${idx})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">تعديل</button>
+                    <button onclick="deleteClientItem(${idx}, '${c.name}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold transition">حذف</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    modal.classList.remove('hidden');
+}
+
+function updateClientDetails(idx) {
+    const newName = document.getElementById(`client-name-edit-${idx}`).value.trim();
+    const newPhone = document.getElementById(`client-phone-edit-${idx}`).value.trim();
+    if (!newName) {
+        alert("اسم العميل لا يمكن أن يكون فارغاً!");
+        return;
+    }
+    clientsList[idx].name = newName;
+    clientsList[idx].phone = newPhone;
+    localStorage.setItem('ali_clients_list', JSON.stringify(clientsList));
+    alert("تم تحديث بيانات العميل بنجاح!");
+    openManageClientsModal();
+}
+
+function deleteClientItem(idx, clientName) {
+    if (confirm(`هل أنت متأكد من حذف العميل (${clientName}) نهائياً؟`)) {
+        clientsList.splice(idx, 1);
+        localStorage.setItem('ali_clients_list', JSON.stringify(clientsList));
+        if (db) {
+            db.collection("clients").doc(clientName).delete().catch(err => console.log(err));
+        }
+        openManageClientsModal();
+    }
 }
 
 async function loadClientsFromCloud() {
