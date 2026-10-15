@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ALI SABER HANAFY SYSTEM - لوحة التحكم المؤسسية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+    <!-- تم فصل التنسيقات بالكامل هنا -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="p-2 sm:p-4 lg:p-6">
+
+    <div class="max-w-5xl mx-auto space-y-4 print-card">
+        
+        <!-- الهيدر والشعار -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white p-5 sm:p-6 rounded-2xl shadow-lg border border-slate-800 flex flex-col items-center justify-center text-center gap-2">
+            <h1 class="text-xl sm:text-3xl font-black text-amber-400 font-['Cinzel_Decorative',serif] tracking-wider uppercase drop-shadow-md">
+                ALI SABER HANAFY SYSTEM
+            </h1>
+            <div class="w-32 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent my-1"></div>
+            <p class="text-slate-300 text-xs sm:text-sm font-semibold">منظومة إدارة الفواتير وعروض الأسعار والعملاء بكل إحترافية</p>
+            <span class="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs px-3 py-1 rounded-full font-semibold mt-1">إصدار المؤسسة المعتمد</span>
+        </div>
+
+        <div class="corporate-card overflow-hidden p-4 sm:p-6 lg:p-8 space-y-6">
+
+            <!-- بيانات الفاتورة الأساسية -->
+            <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-inner space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-br from-amber-400 to-amber-600 p-3 rounded-xl shadow-md w-12 h-12 flex items-center justify-center shrink-0 border border-amber-300/40">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6 text-slate-950">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <div class="flex-1 text-right w-full">
+                        <span class="text-xs text-slate-300 font-bold block mb-1">اسم المحل أو الشركة التجارية:</span>
+                        <input type="text" id="store-name-input" value="شركة الضحى للطاقة الشمسية" class="bg-black/30 border border-white/20 focus:border-amber-400 w-full text-white outline-none font-black">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                        <span class="text-xs text-slate-300 font-bold shrink-0">التاريخ:</span>
+                        <input type="text" id="quote-date" placeholder="DD/MM/YYYY" class="w-full bg-black/30 border border-white/20 text-white text-center font-bold">
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                        <span class="text-xs text-slate-300 font-bold shrink-0">العميل:</span>
+                        <div class="flex items-center gap-2 w-full relative">
+                            <input type="text" id="client-search-input" placeholder="ابحث أو اختر العميل..." class="w-full bg-black/30 border border-white/20 text-white font-bold" autocomplete="off">
+                            <button onclick="confirmActionWithGuide('إضافة عميل جديد', 'تسجيل عميل جديد بالسيستم لربطه بالفواتير.', openAddClientModal)" class="bg-emerald-600 text-white px-4 py-3 rounded-xl font-bold shrink-0">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إدارة الجداول والفواتير الذكية -->
+            <div class="bg-gradient-to-br from-indigo-900/5 via-blue-900/5 to-slate-100 border border-indigo-200/80 rounded-2xl p-4 sm:p-5 shadow-sm no-print space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-indigo-200/60 pb-3">
+                    <h3 class="text-xs sm:text-sm font-bold text-indigo-950 flex items-center gap-2">
+                        <span>📦</span> إدارة الجداول والفواتير الذكية
+                    </h3>
+                    <div class="flex items-center gap-2 w-full sm:w-auto flex-row-reverse sm:flex-row flex-wrap justify-end">
+                        <button onclick="confirmActionWithGuide('إدارة الكتالوج الموجه بالبحث', 'يفتح لك لوحة بحث متقدمة لإدارة وتعديل المنتجات والأقسام بسهولة.', openCatalogModal)" class="sys-btn bg-blue-600 hover:bg-blue-700 text-white text-xs flex-1 sm:flex-none">📋 إدارة الكتالوج</button>
+                        <button onclick="confirmActionWithGuide('تصميم باقة جديدة', 'تجميع عدة أصناف معاً في قالب باقة واحدة.', openCreatePackageModal)" class="sys-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs flex-1 sm:flex-none"><span>✨</span> باقة جديدة</button>
+                        <button onclick="confirmActionWithGuide('إدارة الباقات', 'التحكم في الباقات الحالية.', openCatalogModal)" class="bg-white border border-slate-300 p-3 rounded-xl text-slate-700 shadow-sm shrink-0">⚙️</button>
+                    </div>
+                </div>
+                
+                <!-- إضافة جدول فارغ -->
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2 shadow-sm">
+                    <span class="text-xs font-bold text-slate-700 block">📄 جدول فارغ (تعبئة تدريجية):</span>
+                    <div class="flex flex-col sm:flex-row items-center gap-2">
+                        <input type="text" id="section-picker-input" placeholder="اكتب اسم القسم/الجدول..." class="bg-slate-50 border border-slate-300 w-full font-medium" autocomplete="off">
+                        <button onclick="confirmActionWithGuide('إنشاء جدول فارغ', 'يضيف جدول جديد فارغ للفاتورة.', addSelectedSectionTableToCurrentClient)" class="sys-btn bg-slate-900 text-white text-xs w-full sm:w-auto">+ إنشاء جدول</button>
+                    </div>
+                </div>
+
+                <!-- إدراج باقة مجمعة -->
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2 shadow-sm">
+                    <span class="text-xs font-bold text-indigo-900 block">📦 باقة أصناف مجمعة جاهزة:</span>
+                    <div class="flex flex-col sm:flex-row items-center gap-2">
+                        <input type="text" id="package-picker-input" placeholder="اختر باقة مجمعة لإدراجها..." class="bg-white border border-slate-300 w-full font-medium" autocomplete="off">
+                        <button onclick="confirmActionWithGuide('إدراج باقة بالفاتورة', 'إدراج بنود الباقة المختارة بالفاتورة.', addSelectedPackageTableToCurrentClient)" class="sys-btn bg-indigo-700 text-white text-xs w-full sm:w-auto">+ إدراج الباقة</button>
+                    </div>
+                </div>
+
+                <!-- إضافة صنف جديد للكاتالوج -->
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-3 shadow-sm">
+                    <span class="text-xs font-bold text-slate-700 block">➕ إضافة صنف جديد للكاتالوج الثابت:</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+                        <input type="text" id="new-item-name" placeholder="اسم الصنف الجديد..." class="sm:col-span-4 bg-slate-50 border border-slate-300 font-medium">
+                        <input type="number" id="new-item-price" placeholder="السعر الثابت" class="sm:col-span-2 bg-slate-50 border border-slate-300 font-medium">
+                        <input type="text" id="new-item-qty" placeholder="الكمية الافتراضية" class="sm:col-span-2 bg-slate-50 border border-slate-300 font-medium" value="1">
+                        <select id="new-item-category" class="sm:col-span-4 bg-slate-50 border border-slate-300 font-medium"></select>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center pt-2 border-t border-slate-100">
+                        <div class="sm:col-span-6 flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-600 shrink-0">ملحق فرعي لـ:</label>
+                            <input type="text" id="new-item-sub-input" placeholder="-- بدون --" class="flex-1 bg-slate-50 border border-slate-300" autocomplete="off">
+                        </div>
+                        <div class="sm:col-span-4 flex items-center gap-2">
+                            <input type="checkbox" id="new-item-auto-checkbox" class="w-5 h-5 text-emerald-600 rounded">
+                            <label class="text-xs font-bold text-slate-700">إضافة تلقائية عند الرئيسي؟</label>
+                        </div>
+                        <button onclick="confirmActionWithGuide('حفظ بالكاتالوج', 'يحفظ الصنف الجديد.', addNewItemToCatalog)" class="sys-btn sm:col-span-2 bg-emerald-700 text-white text-xs">+ حفظ</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sections-container" class="space-y-6"></div>
+
+            <!-- ملخص الحسابات -->
+            <div id="summary-section" class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-4 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center border-b border-white/10 pb-4 gap-3">
+                    <span class="text-xs sm:text-base font-bold text-slate-200">الإجمالي العام المطلوب للعميل:</span>
+                    <span id="grand-total" class="text-lg sm:text-3xl font-black text-emerald-400 bg-emerald-950/60 px-5 py-3 rounded-xl border border-emerald-500/30 w-full sm:w-auto text-center">0 جنية</span>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b border-white/10 pb-3">
+                    <strong class="text-slate-300 text-xs shrink-0 sm:w-36">فقط لا غير:</strong>
+                    <input type="text" id="grand-total-words-ar" class="bg-white/10 border border-white/20 w-full text-emerald-300 font-bold">
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b border-white/10 pb-3">
+                    <strong class="text-slate-300 text-xs shrink-0 sm:w-36">Amount (EN):</strong>
+                    <input type="text" id="grand-total-words-en" class="bg-white/10 border border-white/20 w-full text-emerald-300 font-bold">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2">
+                            <strong class="w-20 text-slate-300 shrink-0">مدة العرض:</strong>
+                            <input type="text" id="duration-text" class="bg-white/10 border border-white/20 w-full text-white font-medium" value="اسبوع من تاريخه">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <strong class="w-20 text-slate-300 shrink-0">دفعة مقدمة:</strong>
+                            <input type="text" id="payment-terms-text" class="bg-white/10 border border-white/20 w-full text-white font-medium" value="90% تعاقد | 10% عند التوريد">
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2">
+                            <strong class="w-20 text-slate-300 shrink-0">ملاحظة:</strong>
+                            <input type="text" id="notes-text" class="bg-white/10 border border-white/20 w-full text-white font-medium" value="العرض غير شامل الأعمال المدنية.">
+                        </div>
+                        <div class="flex items-center justify-between sm:justify-end gap-2 pt-1">
+                            <span class="text-slate-300 font-semibold">المدير المسئول:</span>
+                            <input type="text" id="manager-name" class="bg-white/10 border border-white/20 w-36 sm:w-44 text-white font-bold text-left" value="م/ وليد محمدين">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- أجراءات الطباعة والحفظ -->
+            <div class="main-actions-grid no-print pt-2">
+                <a href="print_images.html" class="sys-btn bg-sky-700 text-white">🖼️ أداة طباعة الصور</a>
+                <button onclick="confirmActionWithGuide('حفظ بيانات السحابة', 'حفظ الفاتورة والعميل في السحابة.', saveCurrentClientData)" class="sys-btn bg-indigo-600 text-white">💾 حفظ بيانات السحابة</button>
+                <button onclick="confirmActionWithGuide('طباعة / PDF', 'فتح نافذة الطباعة.', window.print)" class="sys-btn bg-emerald-600 text-white">🖨️ طباعة / PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الإرشاد التفاعلي (Guide Modal) -->
+    <div id="guide-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 text-center">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-black">💡</div>
+            <h3 id="guide-title" class="font-black text-slate-900 text-base">عنوان الإجراء</h3>
+            <p id="guide-desc" class="text-xs text-slate-600 leading-relaxed font-semibold"></p>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="closeGuideModal()" class="bg-slate-100 text-slate-700 py-3 rounded-xl text-xs font-bold">إلغاء</button>
+                <button id="guide-confirm-btn" class="bg-emerald-600 text-white py-3 rounded-xl text-xs font-bold">متابعة التنفيذ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة عميل -->
+    <div id="client-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm">➕ إضافة عميل جديد</h3>
+                <button onclick="closeAddClientModal()" class="text-rose-400 font-bold text-lg px-2">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 block mb-1">اسم العميل / الشركة:</label>
+                    <input type="text" id="new-client-name" placeholder="أدخل اسم العميل..." class="w-full bg-slate-50 border border-slate-300">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-700 block mb-1">رقم الهاتف:</label>
+                    <input type="text" id="new-client-phone" placeholder="010xxxxxxxx..." class="w-full bg-slate-50 border border-slate-300">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-700 block mb-1">العنوان:</label>
+                    <input type="text" id="new-client-address" placeholder="المدينة / المحافظة..." class="w-full bg-slate-50 border border-slate-300">
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3.5 border-t flex justify-end">
+                <button onclick="createNewClientAndSwitch()" class="sys-btn bg-emerald-600 text-white text-xs py-3 w-full sm:w-auto">إضافة وفتح النموذج</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة بناء باقة جديدة -->
+    <div id="create-package-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+            <div class="bg-indigo-950 text-white p-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm">✨ تصميم وبناء باقة أصناف مجمعة جديدة</h3>
+                <button onclick="closeCreatePackageModal()" class="text-rose-400 font-bold text-lg px-2">✕</button>
+            </div>
+            <div class="p-4 space-y-3 overflow-y-auto flex-1">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 block mb-1">اسم الباقة / الجدول:</label>
+                    <input type="text" id="pkg-title-input" placeholder="اسم الباقة..." class="w-full bg-slate-50 border border-slate-300">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-700 block mb-1">وصف الباقة (Badge):</label>
+                    <input type="text" id="pkg-badge-input" value="باقة مجهزة" class="w-full bg-slate-50 border border-slate-300">
+                </div>
+                <div class="border-t pt-3 space-y-2">
+                    <label class="text-xs font-bold text-slate-700 block">إضافة أصناف الكتالوج للباقة:</label>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="pkg-item-search-input" placeholder="اختر صنفاً من الكتالوج..." class="bg-slate-50 border border-slate-300 flex-1" autocomplete="off">
+                        <button onclick="addItemToPackageBuilder()" class="bg-indigo-600 text-white text-xs py-3 px-4 rounded-xl font-bold shrink-0">+ إضافة للباقة</button>
+                    </div>
+                    <div id="pkg-items-list" class="space-y-1.5 max-h-36 overflow-y-auto border border-slate-200 p-2 rounded-xl bg-slate-50"></div>
+                </div>
+            </div>
+            <div class="bg-slate-100 p-3 border-t flex justify-end shrink-0">
+                <button onclick="saveNewCreatedPackage()" class="sys-btn bg-emerald-600 text-white text-xs py-3 w-full sm:w-auto">حفظ الباقة بالسيستم</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إدارة الكتالوج الموجهة بالبحث الذكي -->
+    <div id="catalog-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white p-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm sm:text-base">📋 إدارة الكتالوج الموجهة بالبحث الذكي</h3>
+                <button onclick="closeCatalogModal()" class="text-rose-400 font-bold text-lg px-2">✕</button>
+            </div>
+            
+            <div class="p-3 bg-slate-100 border-b shrink-0">
+                <input type="text" id="catalog-search-filter" placeholder="ابحث باسم المنتج، القسم، أو الملحق الفرعي..." oninput="filterCatalogModalList(this.value)" class="w-full bg-white border border-slate-300 font-bold text-xs">
+            </div>
+
+            <div class="p-3 sm:p-4 overflow-y-auto space-y-3 flex-1 bg-slate-50" id="catalog-search-results-container"></div>
+
+            <div class="bg-slate-100 p-3 border-t flex justify-between items-center shrink-0">
+                <span class="text-xs text-slate-500 font-semibold">💡 اكتب في خانة البحث لتصفية المنتجات فوراً.</span>
+                <button onclick="closeCatalogModal()" class="sys-btn bg-emerald-600 text-white text-xs py-2.5 px-5">إغلاق وحفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-dropdown-suggestions" class="absolute z-50 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto hidden"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <script src="catalog-data.js"></script>
+    <script src="script.js"></script>
+    
+    <script>
+        let pendingAction = null;
+
+        function confirmActionWithGuide(title, description, actionCallback) {
+            const modal = document.getElementById('guide-modal');
+            document.getElementById('guide-title').innerText = title;
+            document.getElementById('guide-desc').innerText = description;
+            pendingAction = actionCallback;
+            modal.classList.remove('hidden');
+        }
+
+        function closeGuideModal() {
+            document.getElementById('guide-modal').classList.add('hidden');
+            pendingAction = null;
+        }
+
+        document.getElementById('guide-confirm-btn').addEventListener('click', () => {
+            const action = pendingAction;
+            closeGuideModal();
+            if (action && typeof action === 'function') action();
+        });
+
+        function openCatalogModal() {
+            document.getElementById('catalog-search-filter').value = "";
+            renderCatalogSearchCards(catalogItems);
+            document.getElementById('catalog-modal')?.classList.remove('hidden');
+        }
+
+        function closeCatalogModal() {
+            document.getElementById('catalog-modal')?.classList.add('hidden');
+        }
+
+        function filterCatalogModalList(query) {
+            const q = query.trim().toLowerCase();
+            const filtered = catalogItems.filter(i => 
+                i.name.toLowerCase().includes(q) || 
+                i.category.toLowerCase().includes(q) || 
+                (i.parentItem && i.parentItem.toLowerCase().includes(q))
+            );
+            renderCatalogSearchCards(filtered);
+        }
+
+        function renderCatalogSearchCards(itemsToRender) {
+            const container = document.getElementById('catalog-search-results-container');
+            if (!container) return;
+
+            if (itemsToRender.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-400 text-xs py-8">لا توجد منتجات مطابقة لعملية البحث.</div>`;
+                return;
+            }
+
+            container.innerHTML = itemsToRender.map((item) => {
+                const globalIdx = catalogItems.findIndex(i => i.name === item.name);
+                return `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-3 shadow-sm">
+                        <div class="flex items-center justify-between gap-2">
+                            <input type="text" value="${item.name}" onchange="updateCatalogItem(${globalIdx}, 'name', this.value)" class="font-bold text-xs bg-slate-50 border rounded p-2 flex-1">
+                            <button onclick="deleteCatalogItemCard(${globalIdx})" class="bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-xs font-bold shrink-0">🗑️ حذف</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold block mb-1">السعر الثابت:</label>
+                                <input type="number" value="${item.price}" onchange="updateCatalogItem(${globalIdx}, 'price', this.value)" class="w-full bg-slate-50 border rounded p-2 text-center font-bold text-emerald-700">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold block mb-1">الكمية الافتراضية:</label>
+                                <input type="text" value="${item.defaultQty}" onchange="updateCatalogItem(${globalIdx}, 'defaultQty', this.value)" class="w-full bg-slate-50 border rounded p-2 text-center">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100">
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold block mb-1">القسم:</label>
+                                <input type="text" value="${item.category}" onchange="updateCatalogItem(${globalIdx}, 'category', this.value)" class="w-full bg-slate-50 border rounded p-2">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold block mb-1">ملحق فرعي لـ:</label>
+                                <input type="text" value="${item.parentItem || ''}" onchange="updateCatalogItem(${globalIdx}, 'parentItem', this.value)" class="w-full bg-slate-50 border rounded p-2" placeholder="بدون">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteCatalogItemCard(globalIdx) {
+            if (confirm("هل أنت متأكد من حذف هذا الصنف من الكتالوج؟")) {
+                catalogItems.splice(globalIdx, 1);
+                localStorage.setItem('ali_catalog_items', JSON.stringify(catalogItems));
+                renderCatalogSearchCards(catalogItems);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchInputs = document.querySelectorAll('#client-search-input, #section-picker-input, #package-picker-input, #pkg-item-search-input');
+            searchInputs.forEach(input => {
+                if (!input) return;
+                input.addEventListener('focus', function() {
+                    this.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            });
+        });
+    </script>
+</body>
+</html>
